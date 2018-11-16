@@ -32,14 +32,14 @@ def access_denied_handler(event, context):
     snsMessage = event['detail']
 
   # format initial message
-  message = 'Access denied on event {0} occured in account {1} by {2}\n'.format(
+  message = '<!channel>\n\n<@tre.king>\n\nEVENT: *{0}*\n\nACCOUNT: `{1}`\n\nUSER: {2}\n\n'.format(
       snsMessage['eventName'],
       useridentity['accountId'] if 'accountId' in useridentity else '<N/A>',
       useridentity['userName'] if 'userName' in useridentity else '<N/A>'
   )
-  message += 'Event source: {0}\n'.format(snsMessage['eventSource'])
-  message += 'Source agent: {0}\n'.format(snsMessage['sourceIPAddress'])
-  message += 'Useragent: {0}\n'.format(snsMessage['userAgent'])
+  message += 'Event source: {0}\n\n'.format(snsMessage['eventSource'])
+  message += 'Source agent: {0}\n\n'.format(snsMessage['sourceIPAddress'])
+  message += 'Useragent: {0}\n\n'.format(snsMessage['userAgent'])
   if 'APIKey' in os.environ and os.environ['APIKey']:
     sourceIPAddress = snsMessage['sourceIPAddress']
     ip_geo_data = getIPGeoDetails(sourceIPAddress)
@@ -48,8 +48,8 @@ def access_denied_handler(event, context):
     city = ip_geo_data['location']['city'] if 'location' in ip_geo_data else 'N/A'
     ip_whois_data = getIPWhoisDetails(sourceIPAddress)
     owner = ip_whois_data['WhoisRecord']['registrant']['organization'] if 'WhoisRecord' in ip_whois_data else 'N/A'
-    message += 'Location: {0}, {1}, {2}\n'.format(city, region, country)
-    message += 'Source IP owner: {0}\n'.format(owner)
+    message += 'Location: {0}, {1}, {2}\n\n'.format(city, region, country)
+    message += 'Source IP owner: {0}\n\n'.format(owner)
 
   # send message
   client = boto3.client('sns')
@@ -57,7 +57,7 @@ def access_denied_handler(event, context):
       TopicArn=os.environ['TopicTarget'],
       Message=json.dumps({'TextMessage': message}),
   )
-
+'''
 def publish_user_history(event, context):
   if 'Records' in event:
     record = event['Records'][0]
@@ -78,12 +78,12 @@ def publish_user_history(event, context):
         ]
     )
 
-    history = 'History for user:\n' if len(response['Events'])>0 else '\n No previous history reported for the user'
+    history = '\n\nHistory for user:\n\n' if len(response['Events'])>0 else '\n No previous history reported for the user'
     len_events = 0
     for e in response['Events']:
         cloudtrailEvent = json.loads(e['CloudTrailEvent'])
         sourceIPAddress = cloudtrailEvent['sourceIPAddress']
-        history += '{0}, Event: {1} IP: {2} Agent: {3}.\n'.format(
+        history += '{0}, \nEvent: {1}\nIP: {2}\nAgent: {3}.\n\n'.format(
           str(e['EventTime']), # date/time
           e['EventName'], # action
           cloudtrailEvent['sourceIPAddress'], # ip
@@ -127,7 +127,7 @@ def publish_iam_user_history(event, context):
         ]
     )
 
-    history = '\nHistory of IAM user:\n' if len(response['Events'])>0 else '\n No previous history reported for the user'
+    history = '\nHistory of IAM user:\n\n' if len(response['Events'])>0 else '\n No previous history reported for the user'
     len_events = 0
     for e in response['Events']:
         cloudtrailEvent = json.loads(e['CloudTrailEvent'])
@@ -158,7 +158,7 @@ def publish_iam_user_history(event, context):
         TopicArn=os.environ['TopicTarget'],
         Message=json.dumps({'TextMessage': history}),
     )
-
+'''
 def getIPGeoDetails(sourceIPAddress):
   try:
     api_key = os.environ['APIKey']
@@ -184,3 +184,4 @@ def getIPWhoisDetails(sourceIPAddress):
     ip_whois_data = {}
     ip_whois_data = json.dumps(ip_whois_data)
     return ip_whois_data
+
